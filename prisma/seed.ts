@@ -57,6 +57,9 @@ async function main() {
         },
     })
 
+}
+console.log('Seeding database...')
+
     main()
     .then(async () => {
         await prisma.$disconnect()
@@ -66,5 +69,5 @@ async function main() {
         await prisma.$disconnect()
         process.exit(1)
     })
-}
+
 
