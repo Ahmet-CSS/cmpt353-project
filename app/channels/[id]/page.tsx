@@ -49,26 +49,31 @@ export default async function ChannelPage({
         ) : (
           <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
             {posts.map((post) => (
-              <li
-                key={post.id}
-                style={{
-                  marginBottom: 18,
-                  padding: 18,
-                  border: '1px solid #e2e8f0',
-                  borderRadius: 10,
-                  backgroundColor: '#f9fafb',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-                  <strong style={{ fontSize: 18 }}>{post.title}</strong>
-                  <span style={{ color: '#555', fontSize: 13 }}>
-                    {new Date(post.createdAt).toLocaleString()}
-                  </span>
-                </div>
-                <p style={{ margin: '12px 0 0', whiteSpace: 'pre-wrap' }}>{post.body}</p>
-                <p style={{ margin: '12px 0 0', color: '#666', fontSize: 13 }}>
-                  Author: {post.author?.displayName ?? 'Unknown'}
-                </p>
+              <li key={post.id}>
+                <Link
+                  href={`/posts/${post.id}`}
+                  style={{
+                    display: 'block',
+                    marginBottom: 18,
+                    padding: 18,
+                    border: '1px solid #e2e8f0',
+                    borderRadius: 10,
+                    backgroundColor: '#f9fafb',
+                    textDecoration: 'none',
+                    color: 'inherit',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                    <strong style={{ fontSize: 18 }}>{post.title}</strong>
+                    <span style={{ color: '#555', fontSize: 13 }}>
+                      {new Date(post.createdAt).toLocaleString()}
+                    </span>
+                  </div>
+                  <p style={{ margin: '12px 0 0', whiteSpace: 'pre-wrap' }}>{post.body}</p>
+                  <p style={{ margin: '12px 0 0', color: '#666', fontSize: 13 }}>
+                    Author: {post.author?.displayName ?? 'Unknown'}
+                  </p>
+                </Link>
               </li>
             ))}
           </ul>
