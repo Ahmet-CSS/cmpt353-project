@@ -46,6 +46,17 @@ export async function POST(
       },
     })
 
+    if (body.attachmentPath) {
+      await prisma.attachment.create({
+        data: {
+          mimeType: body.mimeType || 'image/png',
+          sizeBytes: body.sizeBytes || 0,
+          path: body.attachmentPath,
+          postId: post.id,
+        },
+      })
+    }
+
     return NextResponse.json(post)
   } catch (error) {
     console.error('POST /api/channels/[id]/posts failed:', error)

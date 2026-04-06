@@ -10,6 +10,7 @@ interface CreatePostFormProps {
 export default function CreatePostForm({ channelId }: CreatePostFormProps) {
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
+  const [file, setFile] = useState<File | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
@@ -26,11 +27,35 @@ export default function CreatePostForm({ channelId }: CreatePostFormProps) {
       return
     }
 
+    let attachmentPath: string | undefined
+    let mimeType: string | undefined
+    let sizeBytes: number | undefined
+
+    if (file) {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const uploadResponse = await fetch('/api/uploads', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!uploadResponse.ok) {
+        setError('Failed to upload image. Please try again.')
+        return
+      }
+
+      const uploadData = await uploadResponse.json()
+      attachmentPath = uploadData.path
+      mimeType = uploadData.mimeType
+      sizeBytes = uploadData.sizeBytes
+    }
+
     startTransition(async () => {
       const response = await fetch(`/api/channels/${channelId}/posts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: trimmedTitle, body: trimmedBody }),
+        body: JSON.stringify({ title: trimmedTitle, body: trimmedBody, attachmentPath, mimeType, sizeBytes }),
       })
 
       if (!response.ok) {
@@ -40,6 +65,7 @@ export default function CreatePostForm({ channelId }: CreatePostFormProps) {
 
       setTitle('')
       setBody('')
+      setFile(null)
       router.refresh()
     })
   }
@@ -69,6 +95,19 @@ export default function CreatePostForm({ channelId }: CreatePostFormProps) {
           onChange={(event) => setBody(event.target.value)}
           placeholder="Write your post content here"
           rows={5}
+          style={{ width: '100%', padding: '10px 12px', borderRadius: 6, border: '1px solid #ccc' }}
+        />
+      </div>
+
+      <div>
+        <label htmlFor="post-file" style={{ display: 'block', fontWeight: 600, marginBottom: 6 }}>
+          Screenshot (optional)
+        </label>
+        <input
+          id="post-file"
+          type="file"
+          accept="image/*"
+          onChange={(event) => setFile(event.target.files?.[0] || null)}
           style={{ width: '100%', padding: '10px 12px', borderRadius: 6, border: '1px solid #ccc' }}
         />
       </div>

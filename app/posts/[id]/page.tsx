@@ -27,6 +27,7 @@ export default async function PostPage({
         },
         orderBy: { createdAt: 'asc' },
       },
+      attachments: true,
     },
   })
 
@@ -69,6 +70,18 @@ export default async function PostPage({
           </span>
         </div>
         <p style={{ margin: '12px 0 0', whiteSpace: 'pre-wrap' }}>{post.body}</p>
+        {post.attachments && post.attachments.length > 0 && (
+          <div style={{ margin: '12px 0 0' }}>
+            {post.attachments.map((attachment) => (
+              <img
+                key={attachment.id}
+                src={attachment.path}
+                alt="Screenshot"
+                style={{ maxWidth: '100%', height: 'auto', borderRadius: 6 }}
+              />
+            ))}
+          </div>
+        )}
         <p style={{ margin: '12px 0 0', color: '#666', fontSize: 13 }}>
           Author: {post.author?.displayName ?? 'Unknown'}
         </p>
