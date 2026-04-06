@@ -9,6 +9,7 @@ interface CreateReplyFormProps {
 
 export default function CreateReplyForm({ postId }: CreateReplyFormProps) {
   const [body, setBody] = useState('')
+  const [file, setFile] = useState<File | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
@@ -24,11 +25,35 @@ export default function CreateReplyForm({ postId }: CreateReplyFormProps) {
       return
     }
 
+    let attachmentPath: string | undefined
+    let mimeType: string | undefined
+    let sizeBytes: number | undefined
+
+    if (file) {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const uploadResponse = await fetch('/api/uploads', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!uploadResponse.ok) {
+        setError('Failed to upload image. Please try again.')
+        return
+      }
+
+      const uploadData = await uploadResponse.json()
+      attachmentPath = uploadData.path
+      mimeType = uploadData.mimeType
+      sizeBytes = uploadData.sizeBytes
+    }
+
     startTransition(async () => {
       const response = await fetch(`/api/posts/${postId}/replies`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ body: trimmedBody }),
+        body: JSON.stringify({ body: trimmedBody, attachmentPath, mimeType, sizeBytes }),
       })
 
       if (!response.ok) {
@@ -37,6 +62,7 @@ export default function CreateReplyForm({ postId }: CreateReplyFormProps) {
       }
 
       setBody('')
+      setFile(null)
       router.refresh()
     })
   }
@@ -53,6 +79,19 @@ export default function CreateReplyForm({ postId }: CreateReplyFormProps) {
           onChange={(event) => setBody(event.target.value)}
           placeholder="Write your reply here"
           rows={4}
+          style={{ width: '100%', padding: '10px 12px', borderRadius: 6, border: '1px solid #ccc' }}
+        />
+      </div>
+
+      <div>
+        <label htmlFor="reply-file" style={{ display: 'block', fontWeight: 600, marginBottom: 6 }}>
+          Screenshot (optional)
+        </label>
+        <input
+          id="reply-file"
+          type="file"
+          accept="image/*"
+          onChange={(event) => setFile(event.target.files?.[0] || null)}
           style={{ width: '100%', padding: '10px 12px', borderRadius: 6, border: '1px solid #ccc' }}
         />
       </div>
