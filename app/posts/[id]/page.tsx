@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 import Link from 'next/link'
 import CreateReplyForm from './CreateReplyForm'
+import AddAttachmentForm from './AddAttachmentForm'
 
 const prisma = new PrismaClient()
 
@@ -88,6 +89,11 @@ export default async function PostPage({
           Author: {post.author?.displayName ?? 'Unknown'}
         </p>
       </div>
+
+      <section style={{ marginTop: 32 }}>
+        <h2>Add Screenshot</h2>
+        <AddAttachmentForm postId={id} />
+      </section>
 
       <section style={{ marginTop: 40 }}>
         <h2>Add reply</h2>
