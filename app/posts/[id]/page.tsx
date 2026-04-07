@@ -3,10 +3,25 @@ import Link from 'next/link'
 import CreateReplyForm from './CreateReplyForm'
 import AddAttachmentForm from './AddAttachmentForm'
 import DeletePostButton from '@/app/components/DeletePostButton'
-import DeleteReplyButton from '@/app/components/DeleteReplyButton'
 import { getCurrentUser } from '@/lib/auth'
+import VoteControls from '@/app/components/VoteControls'
+import ReplyTree from '@/app/components/ReplyTree'
 
 const prisma = new PrismaClient()
+
+type ReplyNode = {
+  id: number
+  body: string
+  createdAt: string
+  author: {
+    displayName: string
+  }
+  attachments: Array<{ id: number; path: string }>
+  parentReplyId: number | null
+  childReplies: ReplyNode[]
+  score: number
+  currentUserVote: number
+}
 
 export default async function PostPage({
   params,
@@ -21,20 +36,16 @@ export default async function PostPage({
     include: {
       author: true,
       channel: true,
+      attachments: true,
+      votes: true,
       replies: {
+        orderBy: { createdAt: 'asc' },
         include: {
           author: true,
           attachments: true,
-          childReplies: {
-            include: {
-              author: true,
-              attachments: true,
-            },
-          },
+          votes: true,
         },
-        orderBy: { createdAt: 'asc' },
       },
-      attachments: true,
     },
   })
 
@@ -46,6 +57,43 @@ export default async function PostPage({
       </div>
     )
   }
+
+  const postScore = post.votes.reduce((sum, vote) => sum + vote.value, 0)
+  const currentPostVote = currentUser
+    ? post.votes.find((vote) => vote.userId === currentUser.id)?.value ?? 0
+    : 0
+
+  const replyMap = new Map<number, ReplyNode>()
+  const replies: ReplyNode[] = post.replies.map((reply) => ({
+    id: reply.id,
+    body: reply.body,
+    createdAt: reply.createdAt.toISOString(),
+    author: reply.author,
+    attachments: reply.attachments,
+    parentReplyId: reply.parentReplyId,
+    childReplies: [],
+    score: reply.votes.reduce((sum, vote) => sum + vote.value, 0),
+    currentUserVote: currentUser
+      ? reply.votes.find((vote) => vote.userId === currentUser.id)?.value ?? 0
+      : 0,
+  }))
+
+  replies.forEach((reply) => replyMap.set(reply.id, reply))
+
+  const topReplies: ReplyNode[] = []
+  replies.forEach((reply) => {
+    if (reply.parentReplyId == null) {
+      topReplies.push(reply)
+      return
+    }
+
+    const parent = replyMap.get(reply.parentReplyId)
+    if (parent) {
+      parent.childReplies.push(reply)
+    } else {
+      topReplies.push(reply)
+    }
+  })
 
   return (
     <div style={{ padding: 20, maxWidth: 860, margin: '0 auto' }}>
@@ -75,28 +123,42 @@ export default async function PostPage({
           backgroundColor: '#f9fafb',
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-          <strong style={{ fontSize: 18 }}>{post.title}</strong>
-          <span style={{ color: '#555', fontSize: 13 }}>
-            {new Date(post.createdAt).toLocaleString()}
-          </span>
-        </div>
-        <p style={{ margin: '12px 0 0', whiteSpace: 'pre-wrap' }}>{post.body}</p>
-        {post.attachments && post.attachments.length > 0 && (
-          <div style={{ margin: '12px 0 0' }}>
-            {post.attachments.map((attachment) => (
-              <img
-                key={attachment.id}
-                src={attachment.path}
-                alt="Screenshot"
-                style={{ maxWidth: '100%', height: 'auto', borderRadius: 6 }}
-              />
-            ))}
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ minWidth: 0 }}>
+            <strong style={{ fontSize: 18 }}>{post.title}</strong>
+            <p style={{ margin: '12px 0 0', whiteSpace: 'pre-wrap' }}>{post.body}</p>
+            {post.attachments && post.attachments.length > 0 && (
+              <div style={{ marginTop: 12 }}>
+                {post.attachments.map((attachment) => (
+                  <img
+                    key={attachment.id}
+                    src={attachment.path}
+                    alt="Screenshot"
+                    style={{ maxWidth: '100%', height: 'auto', borderRadius: 6 }}
+                  />
+                ))}
+              </div>
+            )}
+            <p style={{ margin: '12px 0 0', color: '#666', fontSize: 13 }}>
+              Author: {post.author?.displayName ?? 'Unknown'}
+            </p>
+            <p style={{ marginTop: 8, color: '#666', fontSize: 13 }}>
+              Posted on {new Date(post.createdAt).toLocaleString()}
+            </p>
           </div>
-        )}
-        <p style={{ margin: '12px 0 0', color: '#666', fontSize: 13 }}>
-          Author: {post.author?.displayName ?? 'Unknown'}
-        </p>
+          <VoteControls
+            targetType="post"
+            targetId={post.id}
+            currentVote={currentPostVote}
+            score={postScore}
+            disabled={!currentUser}
+          />
+        </div>
+        {!currentUser ? (
+          <p style={{ marginTop: 12, color: '#666', fontSize: 13 }}>
+            Sign in to vote on this post.
+          </p>
+        ) : null}
       </div>
 
       <section style={{ marginTop: 32 }}>
@@ -121,48 +183,10 @@ export default async function PostPage({
 
       <section style={{ marginTop: 40 }}>
         <h2>Replies</h2>
-        {post.replies.length === 0 ? (
+        {topReplies.length === 0 ? (
           <p>No replies yet. Add the first one above.</p>
         ) : (
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-            {post.replies.map((reply) => (
-              <li
-                key={reply.id}
-                style={{
-                  marginBottom: 18,
-                  padding: 18,
-                  border: '1px solid #e2e8f0',
-                  borderRadius: 10,
-                  backgroundColor: '#f9fafb',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-                  <span style={{ color: '#555', fontSize: 13 }}>
-                    {new Date(reply.createdAt).toLocaleString()}
-                  </span>
-                </div>
-                <p style={{ margin: '12px 0 0', whiteSpace: 'pre-wrap' }}>{reply.body}</p>
-                {reply.attachments && reply.attachments.length > 0 && (
-                  <div style={{ margin: '12px 0 0' }}>
-                    {reply.attachments.map((attachment) => (
-                      <img
-                        key={attachment.id}
-                        src={attachment.path}
-                        alt="Screenshot"
-                        style={{ maxWidth: '100%', height: 'auto', borderRadius: 6 }}
-                      />
-                    ))}
-                  </div>
-                )}
-                <p style={{ margin: '12px 0 0', color: '#666', fontSize: 13 }}>
-                  Author: {reply.author?.displayName ?? 'Unknown'}
-                </p>
-                {currentUser?.role === 'admin' ? (
-                  <DeleteReplyButton replyId={reply.id} />
-                ) : null}
-              </li>
-            ))}
-          </ul>
+          <ReplyTree postId={post.id} replies={topReplies} disabled={!currentUser} />
         )}
       </section>
     </div>

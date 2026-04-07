@@ -22,6 +22,7 @@ export async function POST(
         body: body.body,
         postId: Number(id),
         authorId: user.id,
+        parentReplyId: body.parentReplyId ? Number(body.parentReplyId) : null,
       },
       include: {
         author: true,

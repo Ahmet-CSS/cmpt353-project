@@ -5,10 +5,11 @@ import { useRouter } from 'next/navigation'
 
 interface CreateReplyFormProps {
   postId: string
+  parentReplyId?: number
   disabled?: boolean
 }
 
-export default function CreateReplyForm({ postId, disabled = false }: CreateReplyFormProps) {
+export default function CreateReplyForm({ postId, parentReplyId, disabled = false }: CreateReplyFormProps) {
   const [body, setBody] = useState('')
   const [file, setFile] = useState<File | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -59,7 +60,7 @@ export default function CreateReplyForm({ postId, disabled = false }: CreateRepl
       const response = await fetch(`/api/posts/${postId}/replies`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ body: trimmedBody, attachmentPath, mimeType, sizeBytes }),
+        body: JSON.stringify({ body: trimmedBody, parentReplyId, attachmentPath, mimeType, sizeBytes }),
       })
 
       if (!response.ok) {
@@ -75,6 +76,11 @@ export default function CreateReplyForm({ postId, disabled = false }: CreateRepl
 
   return (
     <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 12, maxWidth: 620 }}>
+      {parentReplyId ? (
+        <p style={{ margin: 0, color: '#555', fontSize: 14 }}>
+          Replying to reply #{parentReplyId}
+        </p>
+      ) : null}
       <div>
         <label htmlFor="reply-body" style={{ display: 'block', fontWeight: 600, marginBottom: 6 }}>
           Reply

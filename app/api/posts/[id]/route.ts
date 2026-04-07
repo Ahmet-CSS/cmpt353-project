@@ -16,9 +16,11 @@ export async function GET(
       include: {
         author: true,
         channel: true,
+        votes: true,
         replies: {
           include: {
             author: true,
+            votes: true,
             childReplies: {
               include: {
                 author: true,
