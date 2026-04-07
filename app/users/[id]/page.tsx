@@ -1,7 +1,5 @@
 import { notFound } from 'next/navigation'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { prisma } from '@/lib/prisma'
 
 export default async function UserPage({ params }: { params: { id: string } }) {
   const userId = parseInt(params.id)

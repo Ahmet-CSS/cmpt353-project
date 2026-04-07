@@ -22,9 +22,6 @@ export default async function AuthHeader() {
         <Link href="/" style={{ color: '#0070f3', textDecoration: 'none', fontWeight: 600 }}>
           Home
         </Link>
-        <Link href="/channels/1" style={{ color: '#0070f3', textDecoration: 'none' }}>
-          Channel 1
-        </Link>
         <Link href="/search" style={{ color: '#0070f3', textDecoration: 'none' }}>
           Search
         </Link>

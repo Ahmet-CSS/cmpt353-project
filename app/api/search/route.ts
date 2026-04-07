@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { prisma } from '@/lib/prisma'
 
 type SearchResult = {
   type: 'post' | 'reply' | 'channel' | 'user'
@@ -128,7 +126,7 @@ export async function GET(request: NextRequest) {
           content: channel.description || undefined,
           authorName: channel.createdBy.displayName,
           createdAt: channel.createdAt.toISOString(),
-          link: `/channels/${channel.id}`
+          link: `/channels/${encodeURIComponent(channel.name)}`
         })
       })
     }

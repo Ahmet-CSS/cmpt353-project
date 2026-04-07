@@ -74,19 +74,28 @@ export default function SearchPage() {
   return (
     <div style={{ padding: 20, maxWidth: 800, margin: '0 auto' }}>
       <h1>Search ChannelQA</h1>
-      <form onSubmit={handleSubmit} style={{ marginBottom: 20 }}>
-        <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
+      <form
+        onSubmit={handleSubmit}
+        style={{
+          marginBottom: 20,
+          padding: 16,
+          backgroundColor: '#fff',
+          border: '1px solid #e2e8f0',
+          borderRadius: 12,
+        }}
+      >
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 10 }}>
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search query..."
-            style={{ flex: 1, padding: 8, border: '1px solid #ccc', borderRadius: 4 }}
+            style={{ flex: 1, minWidth: 220, padding: 8, border: '1px solid #ccc', borderRadius: 4 }}
           />
           <select
             value={type}
             onChange={(e) => setType(e.target.value)}
-            style={{ padding: 8, border: '1px solid #ccc', borderRadius: 4 }}
+            style={{ padding: 8, border: '1px solid #ccc', borderRadius: 4, minWidth: 140 }}
           >
             <option value="all">All</option>
             <option value="posts">Posts</option>
@@ -103,7 +112,8 @@ export default function SearchPage() {
               color: 'white',
               border: 'none',
               borderRadius: 4,
-              cursor: loading ? 'not-allowed' : 'pointer'
+              cursor: loading ? 'not-allowed' : 'pointer',
+              minWidth: 110,
             }}
           >
             {loading ? 'Searching...' : 'Search'}
@@ -112,7 +122,7 @@ export default function SearchPage() {
       </form>
 
       <div>
-        {results.length === 0 && query && !loading && <p>No results found.</p>}
+        {query && results.length === 0 && !loading && <p>No results found.</p>}
         {results.map((result, index) => (
           <div key={index} style={{
             border: '1px solid #e2e8f0',

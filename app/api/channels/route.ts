@@ -1,8 +1,6 @@
-import { PrismaClient } from '@prisma/client'
 import { NextRequest, NextResponse } from 'next/server'
 import { getUserFromRequest } from '@/lib/auth'
-
-const prisma = new PrismaClient()
+import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   const channels = await prisma.channel.findMany({
@@ -17,6 +15,11 @@ export async function POST(request: NextRequest) {
   const user = await getUserFromRequest(request)
   if (!user) {
     return NextResponse.json({ error: 'Access denied' }, { status: 401 })
+  }
+
+  // Only admins can create channels
+  if (user.role !== 'admin') {
+    return NextResponse.json({ error: 'Only admins can create channels' }, { status: 403 })
   }
 
   const body = await request.json()

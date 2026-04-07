@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import CreateReplyForm from '@/app/posts/[id]/CreateReplyForm'
+import DeleteReplyButton from './DeleteReplyButton'
 import VoteControls from './VoteControls'
 
 interface ReplyNode {
@@ -21,10 +22,11 @@ interface ReplyTreeProps {
   postId: number
   replies: ReplyNode[]
   disabled: boolean
+  isAdmin?: boolean
   depth?: number
 }
 
-export default function ReplyTree({ postId, replies, disabled, depth = 0 }: ReplyTreeProps) {
+export default function ReplyTree({ postId, replies, disabled, isAdmin = false, depth = 0 }: ReplyTreeProps) {
   return (
     <ul style={{ listStyle: 'none', padding: 0, margin: depth === 0 ? 0 : '12px 0 0 0' }}>
       {replies.map((reply) => (
@@ -33,6 +35,7 @@ export default function ReplyTree({ postId, replies, disabled, depth = 0 }: Repl
           postId={postId}
           reply={reply}
           disabled={disabled}
+          isAdmin={isAdmin}
           depth={depth}
         />
       ))}
@@ -40,7 +43,7 @@ export default function ReplyTree({ postId, replies, disabled, depth = 0 }: Repl
   )
 }
 
-function ReplyNodeItem({ postId, reply, disabled, depth }: { postId: number; reply: ReplyNode; disabled: boolean; depth: number }) {
+function ReplyNodeItem({ postId, reply, disabled, isAdmin, depth }: { postId: number; reply: ReplyNode; disabled: boolean; isAdmin: boolean; depth: number }) {
   const [showReplyForm, setShowReplyForm] = useState(false)
 
   return (
@@ -91,6 +94,7 @@ function ReplyNodeItem({ postId, reply, disabled, depth }: { postId: number; rep
             {showReplyForm ? 'Cancel' : 'Reply'}
           </button>
         ) : null}
+        {isAdmin && <DeleteReplyButton replyId={reply.id} />}
       </div>
 
       {showReplyForm ? (
@@ -100,7 +104,7 @@ function ReplyNodeItem({ postId, reply, disabled, depth }: { postId: number; rep
       ) : null}
 
       {reply.childReplies.length > 0 ? (
-        <ReplyTree postId={postId} replies={reply.childReplies} disabled={disabled} depth={depth + 1} />
+        <ReplyTree postId={postId} replies={reply.childReplies} disabled={disabled} isAdmin={isAdmin} depth={depth + 1} />
       ) : null}
     </li>
   )

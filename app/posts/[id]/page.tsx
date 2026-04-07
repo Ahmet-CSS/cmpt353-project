@@ -1,4 +1,3 @@
-import { PrismaClient } from '@prisma/client'
 import Link from 'next/link'
 import CreateReplyForm from './CreateReplyForm'
 import AddAttachmentForm from './AddAttachmentForm'
@@ -6,8 +5,7 @@ import DeletePostButton from '@/app/components/DeletePostButton'
 import { getCurrentUser } from '@/lib/auth'
 import VoteControls from '@/app/components/VoteControls'
 import ReplyTree from '@/app/components/ReplyTree'
-
-const prisma = new PrismaClient()
+import { prisma } from '@/lib/prisma'
 
 type ReplyNode = {
   id: number
@@ -186,7 +184,7 @@ export default async function PostPage({
         {topReplies.length === 0 ? (
           <p>No replies yet. Add the first one above.</p>
         ) : (
-          <ReplyTree postId={post.id} replies={topReplies} disabled={!currentUser} />
+          <ReplyTree postId={post.id} replies={topReplies} disabled={!currentUser} isAdmin={currentUser?.role === 'admin'} />
         )}
       </section>
     </div>
