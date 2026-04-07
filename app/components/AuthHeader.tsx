@@ -22,9 +22,6 @@ export default async function AuthHeader() {
         <Link href="/" style={{ color: '#0070f3', textDecoration: 'none', fontWeight: 600 }}>
           Home
         </Link>
-        <Link href="/search" style={{ color: '#0070f3', textDecoration: 'none' }}>
-          Search
-        </Link>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
         {user ? (

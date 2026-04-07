@@ -1,5 +1,7 @@
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
+import { getCurrentUser } from '@/lib/auth'
+import DeleteUserButton from '@/app/components/DeleteUserButton'
 
 export default async function UserPage({ params }: { params: { id: string } }) {
   const userId = parseInt(params.id)
@@ -33,12 +35,22 @@ export default async function UserPage({ params }: { params: { id: string } }) {
 
   if (!user) notFound()
 
+  const currentUser = await getCurrentUser()
+  const isAdmin = currentUser?.role === 'admin'
+  const canDelete = isAdmin && currentUser.id !== userId
+
   return (
     <div style={{ padding: 20, maxWidth: 800, margin: '0 auto' }}>
       <h1>{user.displayName}</h1>
       <p>Email: {user.email}</p>
       <p>Role: {user.role}</p>
       <p>Joined: {new Date(user.createdAt).toLocaleDateString()}</p>
+
+      {canDelete && (
+        <div style={{ marginTop: 20 }}>
+          <DeleteUserButton userId={userId} userName={user.displayName} />
+        </div>
+      )}
 
       <div style={{ marginTop: 20 }}>
         <h2>Stats</h2>

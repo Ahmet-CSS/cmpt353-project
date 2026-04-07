@@ -17,11 +17,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Access denied' }, { status: 401 })
   }
 
-  // Only admins can create channels
-  if (user.role !== 'admin') {
-    return NextResponse.json({ error: 'Only admins can create channels' }, { status: 403 })
-  }
-
   const body = await request.json()
   const channel = await prisma.channel.create({
     data: {

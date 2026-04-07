@@ -129,6 +129,7 @@ The seed script creates this admin user along with sample channels (`javascript`
 5. **Admin features** (as omen@example.com):
    - Create new channels
    - Full access to all content
+   
 
 ## Project Structure
 
@@ -137,6 +138,8 @@ The seed script creates this admin user along with sample channels (`javascript`
 - `prisma/` - Database schema and migrations
 - `components/` - React components
 - `public/uploads/` - File upload directory
+
+
 
 ## Technologies
 
