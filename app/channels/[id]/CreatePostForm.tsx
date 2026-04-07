@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation'
 
 interface CreatePostFormProps {
   channelId: string
+  disabled?: boolean
 }
 
-export default function CreatePostForm({ channelId }: CreatePostFormProps) {
+export default function CreatePostForm({ channelId, disabled = false }: CreatePostFormProps) {
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
   const [file, setFile] = useState<File | null>(null)
@@ -51,6 +52,11 @@ export default function CreatePostForm({ channelId }: CreatePostFormProps) {
       sizeBytes = uploadData.sizeBytes
     }
 
+    if (disabled) {
+      setError('Access denied. Please sign in to create a post.')
+      return
+    }
+
     startTransition(async () => {
       const response = await fetch(`/api/channels/${channelId}/posts`, {
         method: 'POST',
@@ -81,6 +87,7 @@ export default function CreatePostForm({ channelId }: CreatePostFormProps) {
           value={title}
           onChange={(event) => setTitle(event.target.value)}
           placeholder="Post title"
+          disabled={disabled}
           style={{ width: '100%', padding: '10px 12px', borderRadius: 6, border: '1px solid #ccc' }}
         />
       </div>
@@ -95,6 +102,7 @@ export default function CreatePostForm({ channelId }: CreatePostFormProps) {
           onChange={(event) => setBody(event.target.value)}
           placeholder="Write your post content here"
           rows={5}
+          disabled={disabled}
           style={{ width: '100%', padding: '10px 12px', borderRadius: 6, border: '1px solid #ccc' }}
         />
       </div>
@@ -108,6 +116,7 @@ export default function CreatePostForm({ channelId }: CreatePostFormProps) {
           type="file"
           accept="image/*"
           onChange={(event) => setFile(event.target.files?.[0] || null)}
+          disabled={disabled}
           style={{ width: '100%', padding: '10px 12px', borderRadius: 6, border: '1px solid #ccc' }}
         />
       </div>
@@ -118,14 +127,14 @@ export default function CreatePostForm({ channelId }: CreatePostFormProps) {
 
       <button
         type="submit"
-        disabled={isPending}
+        disabled={isPending || disabled}
         style={{
           padding: '10px 16px',
           borderRadius: 6,
           border: 'none',
-          backgroundColor: '#0070f3',
+          backgroundColor: disabled ? '#aaa' : '#0070f3',
           color: '#fff',
-          cursor: 'pointer',
+          cursor: disabled ? 'not-allowed' : 'pointer',
         }}
       >
         {isPending ? 'Creating…' : 'Create post'}

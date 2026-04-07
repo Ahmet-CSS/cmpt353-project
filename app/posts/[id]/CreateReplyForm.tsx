@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation'
 
 interface CreateReplyFormProps {
   postId: string
+  disabled?: boolean
 }
 
-export default function CreateReplyForm({ postId }: CreateReplyFormProps) {
+export default function CreateReplyForm({ postId, disabled = false }: CreateReplyFormProps) {
   const [body, setBody] = useState('')
   const [file, setFile] = useState<File | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -19,6 +20,11 @@ export default function CreateReplyForm({ postId }: CreateReplyFormProps) {
     setError(null)
 
     const trimmedBody = body.trim()
+
+    if (disabled) {
+      setError('Access denied. Please sign in to reply.')
+      return
+    }
 
     if (!trimmedBody) {
       setError('Reply body is required.')
@@ -79,6 +85,7 @@ export default function CreateReplyForm({ postId }: CreateReplyFormProps) {
           onChange={(event) => setBody(event.target.value)}
           placeholder="Write your reply here"
           rows={4}
+          disabled={disabled}
           style={{ width: '100%', padding: '10px 12px', borderRadius: 6, border: '1px solid #ccc' }}
         />
       </div>
@@ -92,6 +99,7 @@ export default function CreateReplyForm({ postId }: CreateReplyFormProps) {
           type="file"
           accept="image/*"
           onChange={(event) => setFile(event.target.files?.[0] || null)}
+          disabled={disabled}
           style={{ width: '100%', padding: '10px 12px', borderRadius: 6, border: '1px solid #ccc' }}
         />
       </div>
@@ -102,14 +110,14 @@ export default function CreateReplyForm({ postId }: CreateReplyFormProps) {
 
       <button
         type="submit"
-        disabled={isPending}
+        disabled={isPending || disabled}
         style={{
           padding: '10px 16px',
           borderRadius: 6,
           border: 'none',
-          backgroundColor: '#0070f3',
+          backgroundColor: disabled ? '#aaa' : '#0070f3',
           color: '#fff',
-          cursor: 'pointer',
+          cursor: disabled ? 'not-allowed' : 'pointer',
         }}
       >
         {isPending ? 'Posting…' : 'Post reply'}

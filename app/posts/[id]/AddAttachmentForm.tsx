@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation'
 
 interface AddAttachmentFormProps {
   postId: string
+  disabled?: boolean
 }
 
-export default function AddAttachmentForm({ postId }: AddAttachmentFormProps) {
+export default function AddAttachmentForm({ postId, disabled = false }: AddAttachmentFormProps) {
   const [file, setFile] = useState<File | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -16,6 +17,11 @@ export default function AddAttachmentForm({ postId }: AddAttachmentFormProps) {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setError(null)
+
+    if (disabled) {
+      setError('Access denied. Please sign in to add a screenshot.')
+      return
+    }
 
     if (!file) {
       setError('Please select an image file.')
@@ -66,6 +72,7 @@ export default function AddAttachmentForm({ postId }: AddAttachmentFormProps) {
           type="file"
           accept="image/*"
           onChange={(event) => setFile(event.target.files?.[0] || null)}
+          disabled={disabled}
           style={{ width: '100%', padding: '10px 12px', borderRadius: 6, border: '1px solid #ccc' }}
         />
       </div>
@@ -76,14 +83,14 @@ export default function AddAttachmentForm({ postId }: AddAttachmentFormProps) {
 
       <button
         type="submit"
-        disabled={isPending || !file}
+        disabled={isPending || disabled || !file}
         style={{
           padding: '10px 16px',
           borderRadius: 6,
           border: 'none',
-          backgroundColor: '#0070f3',
+          backgroundColor: disabled ? '#aaa' : '#0070f3',
           color: '#fff',
-          cursor: 'pointer',
+          cursor: disabled ? 'not-allowed' : 'pointer',
         }}
       >
         {isPending ? 'Uploading…' : 'Add Screenshot'}

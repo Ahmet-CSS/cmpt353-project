@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 import Link from 'next/link'
 import CreatePostForm from './CreatePostForm'
+import { getCurrentUser } from '@/lib/auth'
 
 const prisma = new PrismaClient()
 
@@ -10,6 +11,7 @@ export default async function ChannelPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
+  const currentUser = await getCurrentUser()
 
   const posts = await prisma.post.findMany({
     where: {
@@ -40,7 +42,12 @@ export default async function ChannelPage({
 
       <section style={{ marginTop: 32 }}>
         <h2>Create post</h2>
-        <CreatePostForm channelId={id} />
+        <CreatePostForm channelId={id} disabled={!currentUser} />
+        {!currentUser ? (
+          <p style={{ color: '#a00', marginTop: 12 }}>
+            Access denied. Please sign in to create a post.
+          </p>
+        ) : null}
       </section>
 
       <section style={{ marginTop: 40 }}>

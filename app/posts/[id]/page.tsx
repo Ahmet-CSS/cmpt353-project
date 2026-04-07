@@ -2,6 +2,9 @@ import { PrismaClient } from '@prisma/client'
 import Link from 'next/link'
 import CreateReplyForm from './CreateReplyForm'
 import AddAttachmentForm from './AddAttachmentForm'
+import DeletePostButton from '@/app/components/DeletePostButton'
+import DeleteReplyButton from '@/app/components/DeleteReplyButton'
+import { getCurrentUser } from '@/lib/auth'
 
 const prisma = new PrismaClient()
 
@@ -11,6 +14,7 @@ export default async function PostPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
+  const currentUser = await getCurrentUser()
 
   const post = await prisma.post.findUnique({
     where: { id: Number(id) },
@@ -52,9 +56,14 @@ export default async function PostPage({
             In <Link href={`/channels/${post.channelId}`}>{post.channel.name}</Link>
           </p>
         </div>
-        <Link href={`/channels/${post.channelId}`} style={{ color: '#0070f3', textDecoration: 'none' }}>
-          ← Back to channel
-        </Link>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+          {currentUser?.role === 'admin' ? (
+            <DeletePostButton postId={id} channelId={post.channelId} />
+          ) : null}
+          <Link href={`/channels/${post.channelId}`} style={{ color: '#0070f3', textDecoration: 'none' }}>
+            ← Back to channel
+          </Link>
+        </div>
       </div>
 
       <div
@@ -92,12 +101,22 @@ export default async function PostPage({
 
       <section style={{ marginTop: 32 }}>
         <h2>Add Screenshot</h2>
-        <AddAttachmentForm postId={id} />
+        <AddAttachmentForm postId={id} disabled={!currentUser} />
+        {!currentUser ? (
+          <p style={{ color: '#a00', marginTop: 12 }}>
+            Access denied. Please sign in to add a screenshot.
+          </p>
+        ) : null}
       </section>
 
       <section style={{ marginTop: 40 }}>
         <h2>Add reply</h2>
-        <CreateReplyForm postId={id} />
+        <CreateReplyForm postId={id} disabled={!currentUser} />
+        {!currentUser ? (
+          <p style={{ color: '#a00', marginTop: 12 }}>
+            Access denied. Please sign in to reply.
+          </p>
+        ) : null}
       </section>
 
       <section style={{ marginTop: 40 }}>
@@ -138,6 +157,9 @@ export default async function PostPage({
                 <p style={{ margin: '12px 0 0', color: '#666', fontSize: 13 }}>
                   Author: {reply.author?.displayName ?? 'Unknown'}
                 </p>
+                {currentUser?.role === 'admin' ? (
+                  <DeleteReplyButton replyId={reply.id} />
+                ) : null}
               </li>
             ))}
           </ul>
